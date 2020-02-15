@@ -1,0 +1,318 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Page Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style type="text/css">
+        table, tr, td, th {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        img.button_open {
+            content: url('http://code.stephenmorley.org/javascript/collapsible-lists/button-open.png');
+            cursor: pointer;
+        }
+
+        img.button_closed {
+            content: url('http://code.stephenmorley.org/javascript/collapsible-lists/button-closed.png');
+            cursor: pointer;
+        }
+
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content/Box */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 25%; /* Could be more or less, depending on screen size */
+        }
+
+        /* The Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+		.mainContent{
+			width: 80%;
+			margin: 0 auto;
+			padding: 20px;
+		}
+    </style>
+    <script type="text/javascript">
+
+        var data = [
+            {
+                "name": "Radamel Falcao",
+                "tckn": "12345678901",
+                "phone": "05469742658",
+                "birthPlace": "Santa Marta",
+                "orderNo": 1,
+                "isMain": true
+            },
+            {
+                "name": "Fernando Muslera",
+                "tckn": "96547852149",
+                "phone": "05327862415",
+                "birthPlace": "Buenos Aires",
+                "orderNo": 2,
+                "isMain": false
+            },
+            {
+                "name": "Sofiane Feghouli",
+                "tckn": "32456987412",
+                "phone": "05367963214",
+                "birthPlace": "Levallois-Perret",
+                "orderNo": 3,
+                "isMain": false
+            },
+            {
+                "name": "Yuto Nagatomo",
+                "tckn": "96547923046",
+                "phone": "05614965478",
+                "birthPlace": "Saijō, Ehime",
+                "orderNo": 4,
+                "isMain": true
+            },
+            {
+                "name": "Serdar Ortaç",
+                "tckn": "243587905723",
+                "phone": "05443457698",
+                "birthPlace": "Aydın",
+                "orderNo": 5,
+                "isMain": false
+            }
+        ]
+
+        function CreateGroup(group_name) {
+            // Create Button(Image)
+            $('td.' + group_name).prepend("<img class='" + group_name + " button_closed'> ");
+            // Add Padding to Data
+            $('tr.' + group_name).each(function () {
+                var first_td = $(this).children('td').first();
+                var padding_left = parseInt($(first_td).css('padding-left'));
+                $(first_td).css('padding-left', String(padding_left + 25) + 'px');
+            });
+            RestoreGroup(group_name);
+
+            // Tie toggle function to the button
+            $('img.' + group_name).click(function () {
+                ToggleGroup(group_name);
+            });
+        }
+
+        function ToggleGroup(group_name) {
+            ToggleButton($('img.' + group_name));
+            RestoreGroup(group_name);
+        }
+
+        function RestoreGroup(group_name) {
+            if ($('img.' + group_name).hasClass('button_open')) {
+                // Open everything
+                $('tr.' + group_name).show();
+
+                // Close subgroups that been closed
+                $('tr.' + group_name).find('img.button_closed').each(function () {
+                    sub_group_name = $(this).attr('class').split(/\s+/)[0];
+                    //console.log(sub_group_name);
+                    RestoreGroup(sub_group_name);
+                });
+            }
+
+            if ($('img.' + group_name).hasClass('button_closed')) {
+                // Close everything
+                $('tr.' + group_name).hide();
+            }
+        }
+
+        function ToggleButton(button) {
+            $(button).toggleClass('button_open');
+            $(button).toggleClass('button_closed');
+        }
+
+        $(document).ready(function () {
+            var columns = ["name", "tckn", "phone"]
+            $('#mainContent').tableCreator({
+                data: data,
+                columns: columns
+            });
+            $("a").click(function () {
+				var name = this.name
+				if(name == "phone"){
+					var modal = document.getElementById("phoneModal");
+					modal.style.display = "block";
+				}
+				else if(name == "tckn"){
+					showMyPersonDetail(this.id);
+				}
+            });
+        });
+
+
+        (function ($) {
+            "use strict";
+
+            $.fn.tableCreator = function (param) {
+
+                var myDiv = document.createElement("div");
+                myDiv.classList.add("table-responsive");
+                var myTable = document.createElement("table")
+                myTable.classList.add("table");
+                var cols = Headers(param.columns, myTable);
+                var cls = " ";
+                var idArray = [];
+                myDiv.append(myTable);
+                $(this).append(myDiv);
+                for (var i = 0; i < param.data.length; i++) {
+                    if (param.data[i].isMain) {
+                        cls = "group" + i;
+                        idArray.push(i);
+                    }
+                    var row = param.data[i].isMain ? $('<tr/>') : $('<tr class=' + cls + '/>');
+                    for (var colIndex = 0; colIndex < cols.length; colIndex++) {
+                        var val = param.data[i][cols[colIndex]];
+                        if (cols[colIndex] == "tckn" || cols[colIndex] == "phone") {
+                            var a = document.createElement("a");
+                            a.innerText = val;
+                            a.href = "#"
+							a.name = cols[colIndex];
+                            a.id = param.data[i].orderNo
+                            val = a;
+                        }
+                        if (val == null) val = "";
+
+                        (param.data[i].isMain && colIndex == 0) ? row.append($('<td class=' + cls + '/>').html(val)) : row.append($('<td/>').html(val));
+                    }
+                    myTable.append(row[0]);
+                }
+                for (var i = 0; i < idArray.length; i++) {
+                    CreateGroup("group" + idArray[i]);
+                }
+                return this;
+            }
+        })(jQuery);
+
+        function Headers(list, selector) {
+            var columns = [];
+            var myHead = document.createElement("thead");
+            myHead.classList.add("thead-dark");
+            var header = $('<tr/>');
+            myHead.append(header[0]);
+            for (var i = 0; i < list.length; i++) {
+                var row = list[i];
+                columns.push(row);
+                header.append($('<th/>').html(row));
+            }
+            $(selector).append(myHead);
+            return columns;
+        }
+
+        function showMyPersonDetail(orderNo) {
+            var info = data[parseInt(orderNo) - 1];
+            $("#lblNameSurname").text(info.name);
+            $("#lblTCKN").text(info.tckn);
+            $("#lblOrderNo").text(info.orderNo);
+            $("#lblPlaceOfBirth").text(info.birthPlace);
+
+            var modal = document.getElementById("detailModal");
+            modal.style.display = "block";
+        }
+
+    </script>
+    <script>
+        $(document).ready(function () {
+            var detailModal = document.getElementById("detailModal");
+			var phoneModal = document.getElementById("phoneModal");
+            var span = document.getElementsByClassName("close")[0];
+            span.onclick = function () {
+                detailModal.style.display = "none";
+				phoneModal.style.display = "none";
+            }
+            window.onclick = function (event) {
+                if (event.target == detailModal || event.target == phoneModal) {
+                    detailModal.style.display = "none";
+					phoneModal.style.display = "none";
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="mainContent" class="mainContent">
+
+    </div>
+
+    <!-- The Modal -->
+    <div id="detailModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="container">
+                <div class="form-group row">
+                    <label for="inputEmail3" class="col-sm-4 col-form-label">Ad Soyad</label>
+                    <div class="col-sm-8">
+                        <label class="col-sm-12 col-form-label" id="lblNameSurname"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label">TCKN</label>
+                    <div class="col-sm-8">
+                        <label class="col-sm-12 col-form-label" id="lblTCKN"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label">Sıra No</label>
+                    <div class="col-sm-8">
+                        <label class="col-sm-12 col-form-label" id="lblOrderNo"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label">Doğum Yeri</label>
+                    <div class="col-sm-8">
+                        <label class="col-sm-12 col-form-label" id="lblPlaceOfBirth"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	
+	
+	<!-- The Modal -->
+    <div id="phoneModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="container">
+                <p> Mobil arama fonksiyonları</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
